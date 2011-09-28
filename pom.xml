@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2011 meltmedia <john.trimble@meltmedia.com>
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <parent>
+    <artifactId>meltmedia</artifactId>
+    <groupId>com.meltmedia</groupId>
+    <version>6</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.meltmedia.maven.plugins</groupId>
+  <artifactId>meltcloud-maven-plugin</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>maven-plugin</packaging>
+
+  <name>meltmedia :: Maven :: meltCloud Plugin</name>
+  <description>
+  The goal of this Maven plugin is to allow for seamlessly updating applications using AWS resources. Specifically, this 
+  plugin is for creating CloudFormation stacks. It provides the ability to group stacks into provisioning groups such 
+  that only one stack is active in the provisioning group at a time. An existing stack in a provisioning group will
+  only be removed if a new stack is successfully created for that provisioning group. This plugin also allows for 
+  mapping EIPs to EC2 instance IDs provided as the output parameters for created stacks. 
+  </description>
+
+  <properties>
+    <!-- Due to some issues with Groovy 1.7 and preserving JavaDocs, we use a somewhat older version of Groovy -->
+    <groovy.version>1.6.9</groovy.version>
+  </properties>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>jtrimble</id>
+      <name>John Trimble</name>
+      <email>john.trimble@meltmedia.com</email>
+    </developer>
+  </developers>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <version>${groovy.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk</artifactId>
+        <version>1.2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.gmaven</groupId>
+        <artifactId>gmaven-mojo</artifactId>
+        <version>1.3</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.codehaus.gmaven.runtime</groupId>
+            <artifactId>gmaven-runtime-1.5</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.gmaven.runtime</groupId>
+        <artifactId>gmaven-runtime-1.6</artifactId>
+        <version>1.3</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.gmaven</groupId>
+      <artifactId>gmaven-mojo</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.gmaven.runtime</groupId>
+      <artifactId>gmaven-runtime-1.6</artifactId>
+      <version>1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-all</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Yes, this is the outdated gmaven plugin... this works around an issue with the dependencies of the plugin being 
+          different here from the project in general -->
+        <plugin>
+          <groupId>org.codehaus.groovy.maven</groupId>
+          <artifactId>gmaven-plugin</artifactId>
+          <version>1.0</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>generateStubs</goal>
+                <goal>compile</goal>
+                <goal>generateTestStubs</goal>
+                <goal>testCompile</goal>
+              </goals>
+              <configuration>
+                <configuration>
+                  <providerSelection>1.6</providerSelection>
+                </configuration>
+              </configuration>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>org.codehaus.groovy</groupId>
+              <artifactId>groovy-all</artifactId>
+              <version>${groovy.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>2.9</version>
+          <configuration>
+            <goalPrefix>meltcloud</goalPrefix>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>com.mycila.maven-license-plugin</groupId>
+          <artifactId>maven-license-plugin</artifactId>
+          <configuration>
+            <header>src/etc/license.txt</header>
+            <strictCheck>true</strictCheck>
+            <includes>
+              <include>**/pom.xml</include>
+              <include>**/*.groovy</include>
+            </includes>
+            <useDefaultExcludes>false</useDefaultExcludes>
+            <properties>
+              <year>2011</year>
+              <email>john.trimble@meltmedia.com</email>
+            </properties>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <!-- Generate stubs the 1.6 way so that they have their JavaDocs intact -->
+      <plugin>
+        <groupId>org.codehaus.groovy.maven</groupId>
+        <artifactId>gmaven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
