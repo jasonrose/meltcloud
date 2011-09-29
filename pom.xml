@@ -16,7 +16,7 @@
 
   <groupId>org.meltmedia.maven.plugins</groupId>
   <artifactId>meltcloud-maven-plugin</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>meltmedia :: Maven :: meltCloud Plugin</name>
