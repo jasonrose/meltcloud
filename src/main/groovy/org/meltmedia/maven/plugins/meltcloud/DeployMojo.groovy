@@ -218,7 +218,13 @@ class DeployMojo extends GroovyMojo {
   AmazonEC2 ec2
   
   // Mapping of regions to AWS endpoints.
-  private Map regionEndpoints = ['us-west-1': ['cloudformation': 'cloudformation.us-west-1.amazonaws.com', 'ec2': 'ec2.us-west-1.amazonaws.com']]
+  private Map regionEndpoints = [
+    'us-west-1': [
+      'cloudformation': 'cloudformation.us-west-1.amazonaws.com', 
+      'ec2': 'ec2.us-west-1.amazonaws.com'],
+    'us-east-1': [
+      'cloudformation': 'cloudformation.us-east-1.amazonaws.com', 
+      'ec2': 'ec2.us-east-1.amazonaws.com']]
   
   /**
    * Creates a CloudFormation client using the given credentials and endpoint.
