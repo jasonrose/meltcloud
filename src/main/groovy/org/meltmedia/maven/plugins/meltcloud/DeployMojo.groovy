@@ -291,7 +291,7 @@ class DeployMojo extends GroovyMojo {
     }
     
     // Sanity check to insure we don't make thousands of these by accident
-    List existingStacks = cloudFormation.describeStacks().stacks.grep({
+    List existingStacks = getFullStacks(cloudFormation, cloudFormation.describeStacks().stacks).grep({
       // Ignore anything either deleted or being deleted
       !(StackStatus.fromValue(it.stackStatus) in [
         StackStatus.DELETE_IN_PROGRESS,
@@ -381,7 +381,7 @@ class DeployMojo extends GroovyMojo {
     // Delete existing stacks in the provisioning group
     try {
       log.info "Deleting old stacks in the provisioning group '${provisioningGroup}'."
-      cloudFormation.describeStacks().stacks.grep {
+      getFullStacks(cloudFormation, cloudFormation.describeStacks().stacks).grep {
         // Select only development stacks
         it.outputs.find { it.outputKey == provisioningGroupOutputKey && it.outputValue == provisioningGroup }
       }.grep {
@@ -405,6 +405,13 @@ class DeployMojo extends GroovyMojo {
       cloudFormation.deleteStack new DeleteStackRequest(stackName: stack.stackId)
       throw new MojoExecutionException("Error encountered while deleting old stacks for provisioning group '${provisioningGroup}'.", e)
     }
+  }
+  
+  /**
+   * Transforms a list of stacks into a list stacks with all fields fully populated.
+   */
+  List<Stack> getFullStacks(AmazonCloudFormation cf, List<Stack> stacks) {
+    stacks.collect { cf.describeStacks(new DescribeStacksRequest(stackName: it.stackId)).stacks }.flatten()
   }
 
   Artifact getArtifact(ArtifactItem item) {
